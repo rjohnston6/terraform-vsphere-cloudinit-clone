@@ -1,24 +1,3 @@
-# vCenter Authentication Variables
-
-variable "vsphere_user" {
-  type = string
-}
-
-variable "vsphere_password" {
-  type      = string
-  sensitive = true
-}
-
-variable "vsphere_server" {
-  type = string
-}
-
-variable "vsphere_allow_unverified" {
-  type        = bool
-  description = "Set to True for self-signed certificates on vcenter otherwise use false"
-  default     = true
-}
-
 # Variables for VM deployment
 variable "vsphere_dc" {
   type        = string
@@ -26,6 +5,10 @@ variable "vsphere_dc" {
 }
 
 variable "vsphere_datastore" {
+  type = string
+}
+
+variable "vsphere_cluster" {
   type = string
 }
 
@@ -43,17 +26,40 @@ variable "vsphere_network" {
   type = string
 }
 
+variable "vsphere_template_folder" {
+  description = "Path to template location if different the folder used for deployed VM"
+  type        = string
+  default     = null
+}
+
 variable "vsphere_template" {
   type = string
 }
 
 variable "vsphere_folder" {
-  type = string
+  type    = string
+  default = null
 }
 
 variable "vm_name" {
   type    = string
   default = "terrafrom_vm"
+}
+
+variable "vm_cpus" {
+  type    = number
+  default = null
+}
+
+variable "vm_ram" {
+  type    = number
+  default = null
+}
+
+variable "vm_notes" {
+  type        = string
+  default     = null
+  description = "Custom notes for VM details"
 }
 
 variable "vm_user" {
@@ -64,6 +70,7 @@ variable "vm_user" {
 variable "vm_password" {
   type      = string
   sensitive = true
+  default   = ""
 }
 
 variable "vm_ssh_key" {
@@ -87,8 +94,4 @@ variable "vm_dns" {
   description = "Sting of comma seperated DNS server addresses"
   type        = string
   default     = "8.8.8.8"
-}
-
-variable "vm_disk_label" {
-  type = string
 }

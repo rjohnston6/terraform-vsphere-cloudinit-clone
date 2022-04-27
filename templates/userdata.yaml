@@ -1,11 +1,12 @@
 #cloud-config
 users:
   - name: ${user}
+    # Use the following to provide a password for login NOT recommended
+    # plain_text_passwd: ${password}
     ssh-authorized-keys:
       - ssh-rsa ${ssh_key}
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
     groups: sudo
     shell: /bin/bash
-
-packages:
-  - tree
+# packages:
+#   - tree
