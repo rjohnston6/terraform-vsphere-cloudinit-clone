@@ -1,0 +1,22 @@
+#cloud-config
+local-hostname: ${hostname}
+instance-id: ${hostname}
+network:
+  version: 2
+  ethernets:
+    ens192:
+      dhcp4: false
+      addresses:
+        - ${vm_ip}
+      gateway4: ${vm_gateway}
+      nameservers:
+        search: [home]
+        addresses: [${vm_dns}]
+    ens224:
+      dhcp4: false
+      addresses: [${additional_ip_addr}]
+      routes: 
+        - to:  ${additional_cidr}
+          via: ${additional_gateway}
+wait-on-network:
+  ipv4: true

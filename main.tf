@@ -1,15 +1,25 @@
 locals {
-  cloud-init_vars = {
-    hostname   = var.vm_name
-    user       = var.vm_user
-    password   = var.vm_password
-    ssh_key    = var.vm_ssh_key
-    vm_ip      = "${var.vm_ip}/${var.vm_netmask}"
-    vm_gateway = var.vm_gateway
-    # netmask  = var.vm_netmask
-    vm_dns = var.vm_dns
+  cloud-init_user_vars = {
+    user     = var.vm_user
+    password = var.vm_password
+    ssh_key  = var.vm_ssh_key
   }
+  # cloud-init_meta_vars = {
   vm_notes_string = var.vm_notes != null ? "${var.vm_notes}\n\nBase Template: ${var.vsphere_template}\n\nDate Created: ${formatdate("MMM DD YYYY hh:mm ZZZ", timestamp())}" : "Base Template: ${var.vsphere_template}\n\nDate Created: ${formatdate("MMM DD YYYY hh:mm ZZZ", timestamp())}"
+}
+
+data "template_file" "meta-data" {
+  template = file("${path.module}/templates/meta-data.tftpl")
+  vars = {
+    hostname            = var.vm_name
+    vm_ip               = "${var.vm_ip}/${var.vm_netmask}"
+    vm_gateway          = var.vm_gateway
+    vm_dns              = var.vm_dns
+    additional_networks = length(var.vsphere_network) == 1 ? true : false
+    additional_ip_addr  = var.routes.ip_addr
+    additional_gateway  = var.routes.gateway
+    additional_cidr     = var.routes.cidr
+  }
 }
 
 data "vsphere_datacenter" "dc" {
@@ -44,8 +54,15 @@ data "vsphere_distributed_virtual_switch" "dvs" {
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
+data "vsphere_network" "vm_mgmt_network" {
+  name                            = var.vsphere_mgmt_network
+  datacenter_id                   = data.vsphere_datacenter.dc.id
+  distributed_virtual_switch_uuid = var.vsphere_dvs != "" ? data.vsphere_distributed_virtual_switch.dvs[0].id : null
+}
+
 data "vsphere_network" "vm_network" {
-  name                            = var.vsphere_network
+  for_each                        = var.vsphere_network != null ? toset(var.vsphere_network) : []
+  name                            = each.key
   datacenter_id                   = data.vsphere_datacenter.dc.id
   distributed_virtual_switch_uuid = var.vsphere_dvs != "" ? data.vsphere_distributed_virtual_switch.dvs[0].id : null
 }
@@ -62,9 +79,18 @@ resource "vsphere_virtual_machine" "vm" {
   scsi_type = data.vsphere_virtual_machine.template.scsi_type
 
   annotation = local.vm_notes_string
+
   network_interface {
-    network_id   = data.vsphere_network.vm_network.id
+    network_id   = data.vsphere_network.vm_mgmt_network.id
     adapter_type = data.vsphere_virtual_machine.template.network_interface_types[0]
+  }
+
+  dynamic "network_interface" {
+    for_each = var.vsphere_network != null ? toset(var.vsphere_network) : []
+    content {
+      network_id   = data.vsphere_network.vm_network[network_interface.key].id
+      adapter_type = data.vsphere_virtual_machine.template.network_interface_types[0]
+    }
   }
 
   disk {
@@ -83,9 +109,9 @@ resource "vsphere_virtual_machine" "vm" {
   }
 
   extra_config = {
-    "guestinfo.metadata"          = base64encode(templatefile("${path.module}/templates/metadata.yaml", local.cloud-init_vars))
+    "guestinfo.metadata"          = base64encode(data.template_file.meta-data.rendered)
     "guestinfo.metadata.encoding" = "base64"
-    "guestinfo.userdata"          = base64encode(templatefile("${path.module}/templates/userdata.yaml", local.cloud-init_vars))
+    "guestinfo.userdata"          = base64encode(templatefile("${path.module}/templates/user-data.tftpl", local.cloud-init_user_vars))
     "guestinfo.userdata.encoding" = "base64"
   }
 
@@ -97,5 +123,4 @@ resource "vsphere_virtual_machine" "vm" {
       clone[0].customize[0].network_interface[0]
     ]
   }
-
 }
