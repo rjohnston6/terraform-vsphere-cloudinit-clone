@@ -5,25 +5,30 @@ variable "vsphere_dc" {
 }
 
 variable "vsphere_datastore" {
-  type = string
+  type        = string
+  description = "Name of Datastore for VM deployment"
 }
 
 variable "vsphere_cluster" {
-  type = string
+  type        = string
+  description = "Cluster to deploy VM to."
 }
 
 variable "vsphere_pool" {
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
+  description = "Name of Resource pool to deploy to, if NO resource pool is defined default cluster Resource Pool will be used"
 }
 
 variable "vsphere_dvs" {
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
+  description = "Name of Distributed vSwitch for deployment, if not provided it will be ignored"
 }
 
 variable "vsphere_network" {
-  type = string
+  type        = string
+  description = "Name of Port group to be used for network attachment for VM"
 }
 
 variable "vsphere_template_folder" {
@@ -33,27 +38,32 @@ variable "vsphere_template_folder" {
 }
 
 variable "vsphere_template" {
-  type = string
+  type        = string
+  description = "Name of template to be cloned for deployment"
 }
 
 variable "vsphere_folder" {
-  type    = string
-  default = null
+  type        = string
+  default     = null
+  description = "Folder to place VM in, if not provided VM will be deployed to the root of the cluster"
 }
 
 variable "vm_name" {
-  type    = string
-  default = "terrafrom_vm"
+  type        = string
+  default     = "terrafrom_vm"
+  description = "Name of VM will also be used as the hostname as part of OS customization with cloud-init."
 }
 
 variable "vm_cpus" {
-  type    = number
-  default = null
+  type        = number
+  default     = null
+  description = "If set will configure VM with the desired CPU count, if NOT the template VM settings will be used."
 }
 
 variable "vm_ram" {
-  type    = number
-  default = null
+  type        = number
+  default     = null
+  description = "If set will configure VM with the desired memory size, if NOT the template VM settings will be used."
 }
 
 variable "vm_notes" {
@@ -63,31 +73,37 @@ variable "vm_notes" {
 }
 
 variable "vm_user" {
-  type    = string
-  default = "sysadmin"
+  type        = string
+  default     = "sysadmin"
+  description = "Username for OS authentication"
 }
 
 variable "vm_password" {
-  type      = string
-  sensitive = true
-  default   = ""
+  type        = string
+  sensitive   = true
+  default     = ""
+  description = "Set only if absolutely needed, If set userdata.yaml template requires customization. Use SSH Keys for authentication is preferred! Password for OS authentication"
 }
 
 variable "vm_ssh_key" {
-  type      = string
-  sensitive = true
+  type        = string
+  sensitive   = true
+  description = "SSH Key to be configured in authorized keys on OS for the provided user"
 }
 
 variable "vm_ip" {
-  type = string
+  type        = string
+  description = "Static IP Address to configure on VM"
 }
 
 variable "vm_gateway" {
-  type = string
+  type        = string
+  description = "Default Gateway for VM"
 }
 
 variable "vm_netmask" {
-  type = string
+  type        = string
+  description = "CIDR length of subnet mask eg. 24"
 }
 
 variable "vm_dns" {
