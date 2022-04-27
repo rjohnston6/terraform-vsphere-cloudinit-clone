@@ -26,9 +26,14 @@ variable "vsphere_dvs" {
   description = "Name of Distributed vSwitch for deployment, if not provided it will be ignored"
 }
 
-variable "vsphere_network" {
+variable "vsphere_mgmt_network" {
   type        = string
-  description = "Name of Port group to be used for network attachment for VM"
+  description = "Managment network interface configured on vnic 1 of vm."
+}
+variable "vsphere_network" {
+  type        = list(string)
+  description = "List of of Port groups to be used for additional network attachment for VM in order of network interfaces for multi-interface deployments."
+  default     = null
 }
 
 variable "vsphere_template_folder" {
@@ -110,4 +115,17 @@ variable "vm_dns" {
   description = "Sting of comma seperated DNS server addresses"
   type        = string
   default     = "8.8.8.8"
+}
+
+variable "routes" {
+  type = object({
+    ip_addr = string
+    gateway = string
+    cidr    = string
+  })
+  default = {
+    ip_addr = null
+    gateway = null
+    cidr    = null
+  }
 }
